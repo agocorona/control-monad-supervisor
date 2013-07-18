@@ -19,32 +19,34 @@ module Control.Monad.Supervisor where
 
 import Control.Monad.State
 
--- | The internal computation can be reexecuted, proceed forward of proceed
+-- | The internal computation can be reexecuted, proceed forward or backward
 data Control a = Control a | Forward a | Backward
 
--- | The supervisor add a Control data wrapper that is interpreted by the monad instance
+-- | The supervisor add a Control wrapper that is interpreted by the monad instance
 newtype Sup m a = Sup { runSup :: m (Control a ) }
 
--- | The supervise class add two general controls that can be applied:
+-- | The supervise class add two general modifiers that can be applied:
 class MonadState s m => Supervise s m where
-   supBack     :: s -> m ()          -- ^ when the computation goes back, what to do with the state
+   supBack     :: s -> m ()          -- ^ when the computation goes back, what to do with the state different
+                                    -- than restoring the previous state is defined in this functionl
                                     -- the parameter is the backtraked state that the computation had
-                                    -- before execution. By default, this state will recovered.
+                                    -- before execution. By default, the previous state will be restored.
    supBack = const $ return ()
    
    supervise ::    m (Control a) -> m (Control a)  -- ^ When the conputation has been executed,
                                                   -- what to do depending on the result
                                                   -- this is an opportunity for modifying behaviours
+                                                  -- By default: supervise= id
    supervise= id
 
--- | flag the computation that return the result as a control point
--- when the computation is going back, it will be reexecuted.
+-- | flag the computation that executes breturn as a control point
+-- when the computation is going back, it will be reexecuted (see the monad definition)
 breturn :: Monad m => a -> Sup m a
 breturn = Sup . return . Control 
 
 instance MonadState s m =>Supervise s m
 
--- | The Supervisor Monad is in essence an Identity monad when executing Forward.
+-- | The Supervisor Monad is in essence an Identity monad transformer when executing Forward.
 instance  Supervise s m => Monad (Sup  m) where
     fail   _ = Sup . return $ Backward
     return x = Sup . return $ Forward x
@@ -58,7 +60,7 @@ instance  Supervise s m => Monad (Sup  m) where
             --  a normal execution if supervise== id
             Forward y  -> supervise $ runSup (f y)
 
-            --   a back was returned by a control, propagate it back
+            --   a back was returned, propagate it back
             Backward  ->  return  Backward
 
             -- the computaton x was a control point. if the branch of execution goes Backward
