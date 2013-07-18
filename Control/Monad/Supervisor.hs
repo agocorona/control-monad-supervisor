@@ -48,7 +48,7 @@ instance MonadState s m =>Supervise s m
 instance  Supervise s m => Monad (Sup  m) where
     fail   _ = Sup . return $ Backward
     return x = Sup . return $ Forward x
-    x >>= f  = Sup $ loop
+    x >>= f  = Sup $ loop 
      where
      loop = do
         s <- get
