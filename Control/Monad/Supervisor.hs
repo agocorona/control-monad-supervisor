@@ -27,20 +27,19 @@ newtype Sup m a = Sup { runSup :: m (Control a ) }
 
 -- | The supervise class add two general modifiers that can be applied:
 class MonadState s m => Supervise s m where
-   supBack     :: s -> m ()          -- ^ when the computation goes back, what to do with the state different
-                                    -- than restoring the previous state is defined in this functionl
-                                    -- the parameter is the backtraked state that the computation had
-                                    -- before execution. By default, the previous state will be restored.
+   supBack     :: s -> m ()          -- ^ When the computation goes back, by default
+                                    -- the previous state is restored This procedure can change
+                                    -- that behaviour.
    supBack = const $ return ()
    
-   supervise ::    m (Control a) -> m (Control a)  -- ^ When the conputation has been executed,
-                                                  -- what to do depending on the result
-                                                  -- this is an opportunity for modifying behaviours
+   supervise ::    m (Control a) -> m (Control a)  -- ^ When the conputation has been executed
+                                                  -- this method is an opportunity for modifying the result
                                                   -- By default: supervise= id
    supervise= id
 
--- | flag the computation that executes breturn as a control point
--- when the computation is going back, it will be reexecuted (see the monad definition)
+-- | Flag the computation that executes @breturn@ as a control point.
+--
+-- When the computation is going back, it will be re-executed (see the monad definition)
 breturn :: Monad m => a -> Sup m a
 breturn = Sup . return . Control 
 

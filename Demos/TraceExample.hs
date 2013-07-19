@@ -12,6 +12,7 @@
 --
 -- This program has an error and the execution will show the executio trace
 --
+-- It is necessary to install the packages monadloc and monadloc-pp
 -----------------------------------------------------------------------------
 {-# OPTIONS -F -pgmF MonadLoc #-}
 module Demos.TraceExample (
