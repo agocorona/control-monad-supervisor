@@ -62,7 +62,7 @@ library
   -- other-modules:       
   
   -- Other library packages from which modules are imported.
-  build-depends:       base -any, mtl -any, monadloc -any
+  build-depends:       base >=4 && <5, mtl -any, monadloc -any
                        , exceptions -any
                        , containers -any
 
