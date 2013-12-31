@@ -1,4 +1,6 @@
-{-# LANGUAGE ScopedTypeVariables, UndecidableInstances #-}
+{-# LANGUAGE ScopedTypeVariables, TypeSynonymInstances,
+    MultiParamTypeClasses, FlexibleInstances
+    ,FlexibleContexts, UndecidableInstances #-}
 
 -- | This module add a 'MonadLoc' instance to the 'Supervisor' monad. This instance generates a trace when a
 -- uncaugh exception is raised.
@@ -56,18 +58,19 @@
 -- TO DO:  extend it for forward traces and test coverages
 
 module Control.Monad.Supervisor.Trace(runTrace) where
-
+import Control.Monad.State
 import Control.Monad.Supervisor
 import Control.Monad.Loc
-import Control.Monad.State
-import Control.Monad.CatchIO as CMC
+import Control.Monad.Catch as CMC
 import Control.Exception (SomeException)
 import Data.List(intersperse)
 
 
 type Trace= [String]
 
-instance (MonadLoc m, Supervise Trace m, MonadCatchIO m)=> MonadLoc (Sup m) where
+
+
+instance (MonadLoc m, Supervise Trace m, MonadCatch m)=> MonadLoc (Sup Trace m) where
     withLoc loc (Sup f) =  Sup $ do
        withLoc loc $ do
              r <- f `CMC.catch` handler1
@@ -81,14 +84,14 @@ instance (MonadLoc m, Supervise Trace m, MonadCatchIO m)=> MonadLoc (Sup m) wher
        -- detected failure, add the first line of trace with the error, init execution back
        handler1 (e :: SomeException)=    put ["exception: " ++show e]  >> return Backward
 
-type WState  m = StateT [String] m
+
 
 -- | Execute an Supervisor computation and raise an error with a trace when an uncaugh exception
 -- is raised. It is necessary to preprocess the file with the monadloc-pp preprocessor.
 --
 -- Otherwise, it produces the same error with no trace.
-runTrace :: Sup (WState IO) () -> IO (Control ())
-runTrace  f=  evalStateT (runSup f1) []
+runTrace :: Supervise [String] m => Sup [String] m a -> m (Control a)
+runTrace  f=  runSup f1
   where
   f1= printBackTrace >> f
   printBackTrace= do
@@ -99,5 +102,8 @@ runTrace  f=  evalStateT (runSup f1) []
      where
      disp tr= "TRACE (error in the last line):\n\n" ++(concat $ intersperse "\n" tr)
 
-
+---- A less polimorphic version of runTrace. It assumes a state monad for the sole purpose
+---- of capturing traces
+--runTraceState  :: Monad m => Sup (StateT [String] m) a -> m (Control a)
+--runTraceState f= evalStateT (runTrace f) []
 

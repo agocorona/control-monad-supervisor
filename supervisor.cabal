@@ -53,11 +53,16 @@ cabal-version:       >=1.8
 
 library
   -- Modules exported by the library.
-  exposed-modules:     Control.Monad.Supervisor.Trace
-  
+  exposed-modules:     Control.Monad.Supervisor
+                       Control.Monad.Supervisor.Trace
+                       Control.Monad.Supervisor.Session
+                       Control.Monad.Supervisor.Transactions
+                       
   -- Modules included in this library but not exported.
   -- other-modules:       
   
   -- Other library packages from which modules are imported.
-  build-depends:       base ==4.5.*, mtl -any, monadloc -any, MonadCatchIO-transformers -any
+  build-depends:       base -any, mtl -any, monadloc -any
+                       , exceptions -any
+                       , containers -any
 

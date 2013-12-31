@@ -25,7 +25,6 @@ import Control.Monad.Trans
 
 main= runTrace $ do
    liftIO $ print "hello"
-
    example
 
 example=
